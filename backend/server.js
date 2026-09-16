@@ -17,11 +17,6 @@ const cache = {
     data: null,
     timestamp: 0,
   },
-
-  transfers: {
-    data: null,
-    timestamp: 0,
-  },
 };
 
 // How long cached data stays valid
@@ -30,7 +25,6 @@ const CACHE_TIME = {
 
   fixtures: 10 * 60 * 1000, // 10 minutes
 
-  transfers: 30 * 60 * 1000, // 30 minutes
 };
 
 const app = express();
@@ -358,125 +352,6 @@ app.get("/api/news", async (req, res) => {
 });
 
 // ========================================
-// TRANSFER WIRE
-// ========================================
-
-app.get("/api/transfers", async (req, res) => {
-  const now = Date.now();
-
-  if (
-    cache.fixtures.data &&
-    now - cache.fixtures.timestamp < CACHE_TIME.fixtures
-  ) {
-    console.log("Using cached fixtures");
-
-    return res.json(cache.fixtures.data);
-  }
-  try {
-    console.log("Fetching latest transfers...");
-
-    const response = await axios.get(
-      "https://v3.football.api-sports.io/transfers",
-      {
-        headers: {
-          "x-apisports-key": process.env.API_FOOTBALL_KEY,
-        },
-      },
-    );
-
-    const players = response.data.response || [];
-
-    const transfers = [];
-
-    // ========================================
-    // EXTRACT TRANSFERS
-    // ========================================
-
-    players.forEach((player) => {
-      if (!player.transfers) {
-        return;
-      }
-
-      player.transfers.forEach((transfer) => {
-        const from = transfer.teams?.out?.name || "-";
-
-        const to = transfer.teams?.in?.name || "-";
-
-        // Ignore incomplete records
-        if (from === "-" || to === "-") {
-          return;
-        }
-
-        // Ignore same-club records
-        if (from.toLowerCase() === to.toLowerCase()) {
-          return;
-        }
-
-        transfers.push({
-          player: player.player?.name || "Unknown Player",
-
-          date: transfer.date,
-
-          type: transfer.type || "Transfer",
-
-          from,
-
-          to,
-        });
-      });
-    });
-
-    // ========================================
-    // REMOVE DUPLICATES
-    // ========================================
-
-    const uniqueTransfers = [];
-
-    const seen = new Set();
-
-    transfers.forEach((transfer) => {
-      const key = `${transfer.player}|${transfer.date}|${transfer.from}|${transfer.to}`;
-
-      if (!seen.has(key)) {
-        seen.add(key);
-
-        uniqueTransfers.push(transfer);
-      }
-    });
-
-    // ========================================
-    // SORT NEWEST FIRST
-    // ========================================
-
-    uniqueTransfers.sort((a, b) => {
-      return new Date(b.date) - new Date(a.date);
-    });
-
-    // ========================================
-    // KEEP ONLY 8
-    // ========================================
-
-    const latestTransfers = uniqueTransfers.slice(0, 8);
-
-    // ========================================
-    // SEND TO REACT
-    // ========================================
-
-    res.json({
-      total: latestTransfers.length,
-
-      transfers: latestTransfers,
-    });
-  } catch (error) {
-    console.error("TRANSFER ERROR:", error.response?.data || error.message);
-
-    res.status(500).json({
-      error: "Failed to fetch transfer data",
-    });
-  }
-});
-
-// ========================================
 // FORCE NEWSPAPER UPDATE
 // ========================================
 
@@ -487,8 +362,7 @@ app.get("/api/refresh", (req, res) => {
   cache.fixtures.data = null;
   cache.fixtures.timestamp = 0;
 
-  cache.transfers.data = null;
-  cache.transfers.timestamp = 0;
+
 
   console.log("Newspaper cache cleared.");
 
@@ -500,7 +374,6 @@ app.get("/api/refresh", (req, res) => {
 // ========================================
 // START SERVER
 // ========================================
-
 app.listen(5000, () => {
   console.log("Football Daily backend running on port 5000");
 });

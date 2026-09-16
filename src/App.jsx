@@ -1,10 +1,8 @@
 import Header from "./components/Header";
 import MainStory from "./components/MainStory";
 import NewsSection from "./components/NewsSection";
-import TransferWire from "./components/TransferWire";
 import Fixtures from "./components/Fixtures";
 import Footer from "./components/Footer";
-
 
 function App() {
   return (
@@ -14,8 +12,6 @@ function App() {
       <MainStory />
 
       <NewsSection />
-
-      <TransferWire />
 
       <Fixtures />
 
