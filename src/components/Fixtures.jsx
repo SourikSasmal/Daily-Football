@@ -5,7 +5,7 @@ function Fixtures() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/fixtures")
+    fetch(`${import.meta.env.VITE_API_URL}/api/fixtures`)
       .then((response) => response.json())
 
       .then((data) => {

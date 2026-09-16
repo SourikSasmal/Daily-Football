@@ -24,12 +24,20 @@ const CACHE_TIME = {
   news: 10 * 60 * 1000, // 10 minutes
 
   fixtures: 10 * 60 * 1000, // 10 minutes
-
 };
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
+app.options("*", cors());
+
 app.use(express.json());
 
 // ========================================
@@ -361,8 +369,6 @@ app.get("/api/refresh", (req, res) => {
 
   cache.fixtures.data = null;
   cache.fixtures.timestamp = 0;
-
-
 
   console.log("Newspaper cache cleared.");
 

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 
 function MainStory() {
+  console.log("API URL:", import.meta.env.VITE_API_URL);
   const [story, setStory] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/news")
+    fetch(`${import.meta.env.VITE_API_URL}/api/news`)
       .then((response) => response.json())
 
       .then((data) => {

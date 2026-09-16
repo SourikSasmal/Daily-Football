@@ -21,7 +21,7 @@ function Header() {
         className="update-button"
         onClick={async () => {
           try {
-            await fetch("http://localhost:5000/api/refresh");
+            await fetch(`${import.meta.env.VITE_API_URL}/api/refresh`);
 
             window.location.reload();
           } catch (error) {
